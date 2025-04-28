@@ -39,5 +39,25 @@ It features a minimalistic UI with a responsive grid layout for tasks and full C
 git clone https://github.com/yourusername/task-manager.git
 cd task-manager
 
+Install backend dependencies:
+
+bash
+cd backend
+npm install
+node server.js
+
+Open the index.html file with Live Server (VSCode extension) or manually open it in your browser.
+
+task-manager/
+│
+├── backend/
+│   ├── server.js
+│ 
+│
+├── index.html
+└── README.md
+
+
+
 
 

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Task Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      color: #333;
+      margin-top: 30px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      padding: 20px;
+      background: white;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    input, textarea, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #tasks-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .task {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+      text-align: left;
+      transition: transform 0.2s;
+    }
+
+    .task:hover {
+      transform: translateY(-5px);
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .task-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .task-buttons button {
+      flex: 1;
+      font-size: 14px;
+      padding: 8px;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Task Manager</h1>
+
+  <div class="container">
+    <form id="task-form">
+      <input type="text" id="title" placeholder="Task title" required>
+      <textarea id="description" placeholder="Task description" required></textarea>
+      <button type="submit">Add Task</button>
+    </form>
+
+    <div id="tasks-container"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/tasks';
+
+    async function loadTasks() {
+      const res = await fetch(API_URL);
+      const tasks = await res.json();
+
+      const container = document.getElementById('tasks-container');
+      container.innerHTML = '';
+
+      tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'task';
+        if (task.completed) div.classList.add('completed');
+        div.innerHTML = `
+          <h3>${task.title}</h3>
+          <p>${task.description}</p>
+          <div class="task-buttons">
+            <button onclick="toggleComplete(${task.id}, ${task.completed})">
+              ${task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+            </button>
+            <button class="delete-btn" onclick="deleteTask(${task.id})">
+              Delete
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('task-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description })
+      });
+
+      document.getElementById('task-form').reset();
+      loadTasks();
+    });
+
+    async function toggleComplete(id, currentStatus) {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !currentStatus })
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+      loadTasks();
+    }
+
+    loadTasks();
+  </script>
+
+</body>
+</html>
